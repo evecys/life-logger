@@ -109,17 +109,31 @@
           activityItem.appendChild(elapsedTimeDisplay);
           activityItem.appendChild(updateButton);
           activityItem.appendChild(deleteButton);
-
           activityList.appendChild(activityItem);
+
+          updateButton.addEventListener("click", function(event) {
+            var index = parseInt(event.target.dataset.index);
+            var newActivity = {
+              name: prompt("新しい活動名を入力してください"),
+              time: new Date(prompt("新しい時刻を入力してください")).getTime()
+            };
+            if (newActivity.name && newActivity.time) {
+              updateActivity(index, newActivity);
+            }
+          });
+
+          deleteButton.addEventListener("click", function(event) {
+            var index = parseInt(event.target.dataset.index);
+            deleteActivity(index);
+          });
         }
 
-        updateElapsedTime();
+        startElapsedTimeDisplay();
       }
 
-      function updateElapsedTime() {
+      function startElapsedTimeDisplay() {
         var elapsedTimeElements = document.getElementsByClassName("elapsed-time");
-
-        setInterval(function() {
+        var intervalId = setInterval(function() {
           var now = Date.now();
 
           for (var i = 0; i < elapsedTimeElements.length; i++) {
