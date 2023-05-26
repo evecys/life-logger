@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<title>日々の活動</title>
+</head>
+<body>
+  <h1>日々の活動</h1>
+
+  <form id="activityForm">
+    <label for="activityName">活動名:</label>
+    <input type="text" id="activityName" required>
+    <label for="activityTime">時刻:</label>
+    <input type="datetime-local" id="activityTime" required>
+    <button type="submit">追加</button>
+  </form>
+
+  <div id="activityList"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
