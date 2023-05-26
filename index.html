@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Life Logger</title>
+  <title>活動記録</title>
   <style>
     .activity-item {
       margin-bottom: 10px;
@@ -18,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h1>Life Logger</h1>
+  <h1>活動記録</h1>
   <form id="activity-form">
     <label for="activity-input">活動名:</label>
     <input type="text" id="activity-input" required>
@@ -53,9 +53,9 @@
         displayActivities();
       }
 
-      function updateActivity(index, activity) {
+      function updateActivity(index) {
         var activities = getActivitiesFromLocalStorage();
-        activities[index] = activity;
+        activities[index].time = Date.now();
         saveActivitiesToLocalStorage(activities);
         displayActivities();
       }
@@ -97,7 +97,7 @@
           var updateButton = document.createElement("button");
           updateButton.classList.add("update-button");
           updateButton.dataset.index = i;
-          updateButton.textContent = "更新";
+          updateButton.textContent = "開始時刻更新";
 
           var deleteButton = document.createElement("button");
           deleteButton.classList.add("delete-button");
@@ -113,13 +113,7 @@
 
           updateButton.addEventListener("click", function(event) {
             var index = parseInt(event.target.dataset.index);
-            var newActivity = {
-              name: prompt("新しい活動名を入力してください"),
-              time: new Date(prompt("新しい時刻を入力してください")).getTime()
-            };
-            if (newActivity.name && newActivity.time) {
-              updateActivity(index, newActivity);
-            }
+            updateActivity(index);
           });
 
           deleteButton.addEventListener("click", function(event) {
