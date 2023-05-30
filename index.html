@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>活動記録</title>
+  <title>Life Logger</title>
   <style>
     .activity-item {
       margin-bottom: 10px;
@@ -18,13 +18,13 @@
   </style>
 </head>
 <body>
-  <h1>活動記録</h1>
+  <h1>Life Logger</h1>
   <form id="activity-form">
-    <label for="activity-input">活動名:</label>
+    <label for="activity-input">Activity:</label>
     <input type="text" id="activity-input" required>
-    <label for="datetime-input">時刻:</label>
+    <label for="datetime-input">Time:</label>
     <input type="datetime-local" id="datetime-input" required>
-    <button type="submit">追加</button>
+    <button type="submit">Add</button>
   </form>
   <div id="activity-list"></div>
 
@@ -97,12 +97,12 @@
           var updateButton = document.createElement("button");
           updateButton.classList.add("update-button");
           updateButton.dataset.index = i;
-          updateButton.textContent = "開始時刻更新";
+          updateButton.textContent = "Update";
 
           var deleteButton = document.createElement("button");
           deleteButton.classList.add("delete-button");
           deleteButton.dataset.index = i;
-          deleteButton.textContent = "削除";
+          deleteButton.textContent = "Del";
 
           activityItem.appendChild(activityName);
           activityItem.appendChild(activityTime);
