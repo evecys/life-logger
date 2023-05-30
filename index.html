@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>活動記録</title>
+  <title>Life Logger</title>
   <style>
     /* CSS スタイル */
   </style>
 </head>
 <body>
-  <h1>活動記録</h1>
+  <h1>Life Logger</h1>
 
   <form id="activity-form">
     <label for="activity-input">活動名:</label>
     <input type="text" id="activity-input">
+    <label for="time-input">時刻:</label>
+    <input type="datetime-local" id="time-input">
     <button type="submit">追加</button>
   </form>
 
@@ -25,6 +27,7 @@
     document.addEventListener("DOMContentLoaded", function() {
       var activityForm = document.getElementById("activity-form");
       var activityInput = document.getElementById("activity-input");
+      var timeInput = document.getElementById("time-input");
       var activityList = document.getElementById("activity-list");
 
       // 活動データをローカルストレージから読み込む
@@ -34,7 +37,7 @@
       function renderActivity(activity, index) {
         var activityItem = document.createElement("li");
         activityItem.textContent = activity.name + " (開始時刻: " + activity.startTime + ")";
-        
+
         var deleteButton = document.createElement("button");
         deleteButton.textContent = "削除";
         deleteButton.addEventListener("click", function() {
@@ -77,15 +80,18 @@
       activityForm.addEventListener("submit", function(event) {
         event.preventDefault();
         var activityName = activityInput.value;
-        var startTime = new Date().toLocaleString(); // 現在時刻を取得
+        var startTime = timeInput.value || new Date().toISOString(); // 指定時刻がない場合は現在時刻を使用
+
         var activity = {
           name: activityName,
           startTime: startTime
         };
+
         activities.push(activity);
         renderActivity(activity, activities.length - 1);
         saveActivities();
         activityInput.value = "";
+        timeInput.value = "";
       });
 
       // 活動項目を削除する関数
@@ -96,12 +102,19 @@
         saveActivities();
       }
 
-      // 活動項目の開始時刻を更新する関数
+      // 活動項目の開始時刻を現在時刻に更新する関数
       function updateActivity(index) {
-        activities[index].startTime = new Date().toLocaleString();
+        activities[index].startTime = new Date().toISOString();
         activityList.innerHTML = "";
         activities.forEach(renderActivity);
         saveActivities();
+      }
+
+      // URLパラメータから特定の活動項目を識別し、開始時刻を更新
+      var urlParams = new URLSearchParams(window.location.search);
+      var updateIndex = urlParams.get("updateIndex");
+      if (updateIndex !== null) {
+        updateActivity(updateIndex);
       }
 
       // ローカルストレージから読み込んだ活動項目を表示
