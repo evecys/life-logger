@@ -1,124 +1,150 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Life Logger</title>
   <style>
-    /* CSS スタイル */
+    .activity-item {
+      margin-bottom: 10px;
+    }
+    .activity-item span {
+      margin-right: 10px;
+    }
+    .update-btn,
+    .delete-btn {
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Life Logger</h1>
 
   <form id="activity-form">
-    <label for="activity-input">活動名:</label>
-    <input type="text" id="activity-input">
-    <label for="time-input">時刻:</label>
-    <input type="datetime-local" id="time-input">
+    <label for="activity-name">活動名:</label>
+    <input type="text" id="activity-name" required>
+    <label for="activity-time">時刻:</label>
+    <input type="datetime-local" id="activity-time">
     <button type="submit">追加</button>
   </form>
 
-  <ul id="activity-list">
-    <!-- 活動項目がここに追加されます -->
-  </ul>
+  <div id="activity-list"></div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var activityForm = document.getElementById("activity-form");
-      var activityInput = document.getElementById("activity-input");
-      var timeInput = document.getElementById("time-input");
-      var activityList = document.getElementById("activity-list");
+    document.addEventListener('DOMContentLoaded', function() {
+      var activities = JSON.parse(localStorage.getItem('activities')) || [];
+      var activityList = document.getElementById('activity-list');
 
-      // 活動データをローカルストレージから読み込む
-      var activities = JSON.parse(localStorage.getItem("activities")) || [];
+      // ローカルストレージから取得したデータを表示
+      activities.forEach(function(activity) {
+        createActivityItem(activity);
+      });
 
-      // 活動項目を表示する関数
-      function renderActivity(activity, index) {
-        var activityItem = document.createElement("li");
-        activityItem.textContent = activity.name + " (開始時刻: " + activity.startTime + ")";
+      // フォームの送信時にデータを追加
+      var form = document.getElementById('activity-form');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-        var deleteButton = document.createElement("button");
-        deleteButton.textContent = "削除";
-        deleteButton.addEventListener("click", function() {
-          deleteActivity(index);
-        });
-
-        var updateButton = document.createElement("button");
-        updateButton.textContent = "開始時刻更新";
-        updateButton.addEventListener("click", function() {
-          updateActivity(index);
-        });
-
-        var elapsedTime = document.createElement("span"); // 経過時間表示用の要素
-        activityItem.appendChild(elapsedTime);
-        activityItem.appendChild(deleteButton);
-        activityItem.appendChild(updateButton);
-        activityList.appendChild(activityItem);
-
-        // 経過時間を更新する関数
-        function updateElapsedTime() {
-          var currentTime = new Date();
-          var startTime = new Date(activity.startTime);
-          var elapsed = currentTime - startTime;
-          var seconds = Math.floor(elapsed / 1000);
-          var minutes = Math.floor(seconds / 60);
-          var hours = Math.floor(minutes / 60);
-          elapsedTime.textContent = " 経過時間: " + hours + "時間 " + minutes % 60 + "分 " + seconds % 60 + "秒";
-        }
-
-        // 1秒ごとに経過時間を更新
-        setInterval(updateElapsedTime, 1000);
-      }
-
-      // 活動項目を保存する関数
-      function saveActivities() {
-        localStorage.setItem("activities", JSON.stringify(activities));
-      }
-
-      // 活動項目を追加するイベントハンドラ
-      activityForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-        var activityName = activityInput.value;
-        var startTime = timeInput.value || new Date().toISOString(); // 指定時刻がない場合は現在時刻を使用
+        var nameInput = document.getElementById('activity-name');
+        var timeInput = document.getElementById('activity-time');
+        var name = nameInput.value;
+        var time = timeInput.value || new Date().toISOString();
 
         var activity = {
-          name: activityName,
-          startTime: startTime
+          name: name,
+          startTime: time
         };
 
         activities.push(activity);
-        renderActivity(activity, activities.length - 1);
-        saveActivities();
-        activityInput.value = "";
-        timeInput.value = "";
+        localStorage.setItem('activities', JSON.stringify(activities));
+
+        createActivityItem(activity);
+
+        nameInput.value = '';
+        timeInput.value = '';
       });
 
-      // 活動項目を削除する関数
-      function deleteActivity(index) {
-        activities.splice(index, 1);
-        activityList.innerHTML = "";
-        activities.forEach(renderActivity);
-        saveActivities();
+      // 経過時間を1秒ごとに更新
+      setInterval(function() {
+        activities.forEach(function(activity) {
+          var item = document.getElementById(activity.startTime);
+          var startTime = new Date(activity.startTime);
+          var elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+
+          item.querySelector('.elapsed-time').textContent = formatElapsedTime(elapsedTime);
+        });
+      }, 1000);
+
+      // 活動項目を作成する関数
+      function createActivityItem(activity) {
+        var item = document.createElement('div');
+        item.setAttribute('class', 'activity-item');
+        item.setAttribute('id', activity.startTime);
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = activity.name;
+        item.appendChild(nameSpan);
+
+        var startTimeSpan = document.createElement('span');
+        startTimeSpan.setAttribute('class', 'start-time');
+        startTimeSpan.textContent = '開始時刻: ' + formatDateTime(new Date(activity.startTime));
+        item.appendChild(startTimeSpan);
+
+        var elapsedTimeSpan = document.createElement('span');
+        elapsedTimeSpan.setAttribute('class', 'elapsed-time');
+        elapsedTimeSpan.textContent = '経過時間: ' + formatElapsedTime(0);
+        item.appendChild(elapsedTimeSpan);
+
+        var updateButton = document.createElement('button');
+        updateButton.setAttribute('class', 'update-btn');
+        updateButton.textContent = '更新';
+        updateButton.addEventListener('click', function() {
+          var currentTime = new Date().toISOString();
+          activity.startTime = currentTime;
+          localStorage.setItem('activities', JSON.stringify(activities));
+          startTimeSpan.textContent = '開始時刻: ' + formatDateTime(new Date(currentTime));
+          elapsedTimeSpan.textContent = '経過時間: ' + formatElapsedTime(0);
+        });
+        item.appendChild(updateButton);
+
+        var deleteButton = document.createElement('button');
+        deleteButton.setAttribute('class', 'delete-btn');
+        deleteButton.textContent = '削除';
+        deleteButton.addEventListener('click', function() {
+          var index = activities.findIndex(function(item) {
+            return item.startTime === activity.startTime;
+          });
+
+          if (index > -1) {
+            activities.splice(index, 1);
+            localStorage.setItem('activities', JSON.stringify(activities));
+            item.remove();
+          }
+        });
+        item.appendChild(deleteButton);
+
+        activityList.appendChild(item);
       }
 
-      // 活動項目の開始時刻を現在時刻に更新する関数
-      function updateActivity(index) {
-        activities[index].startTime = new Date().toISOString();
-        activityList.innerHTML = "";
-        activities.forEach(renderActivity);
-        saveActivities();
+      // 日時をフォーマットする関数
+      function formatDateTime(dateTime) {
+        var year = dateTime.getFullYear();
+        var month = (dateTime.getMonth() + 1).toString().padStart(2, '0');
+        var day = dateTime.getDate().toString().padStart(2, '0');
+        var hours = dateTime.getHours().toString().padStart(2, '0');
+        var minutes = dateTime.getMinutes().toString().padStart(2, '0');
+        var seconds = dateTime.getSeconds().toString().padStart(2, '0');
+
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
       }
 
-      // URLパラメータから特定の活動項目を識別し、開始時刻を更新
-      var urlParams = new URLSearchParams(window.location.search);
-      var updateIndex = urlParams.get("updateIndex");
-      if (updateIndex !== null) {
-        updateActivity(updateIndex);
-      }
+      // 経過時間をフォーマットする関数
+      function formatElapsedTime(elapsedTime) {
+        var hours = Math.floor(elapsedTime / 3600);
+        var minutes = Math.floor((elapsedTime % 3600) / 60);
+        var seconds = Math.floor(elapsedTime % 60);
 
-      // ローカルストレージから読み込んだ活動項目を表示
-      activities.forEach(renderActivity);
+        return hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+      }
     });
   </script>
 </body>
