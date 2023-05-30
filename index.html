@@ -47,9 +47,25 @@
           updateActivity(index);
         });
 
+        var elapsedTime = document.createElement("span"); // 経過時間表示用の要素
+        activityItem.appendChild(elapsedTime);
         activityItem.appendChild(deleteButton);
         activityItem.appendChild(updateButton);
         activityList.appendChild(activityItem);
+
+        // 経過時間を更新する関数
+        function updateElapsedTime() {
+          var currentTime = new Date();
+          var startTime = new Date(activity.startTime);
+          var elapsed = currentTime - startTime;
+          var seconds = Math.floor(elapsed / 1000);
+          var minutes = Math.floor(seconds / 60);
+          var hours = Math.floor(minutes / 60);
+          elapsedTime.textContent = " 経過時間: " + hours + "時間 " + minutes % 60 + "分 " + seconds % 60 + "秒";
+        }
+
+        // 1秒ごとに経過時間を更新
+        setInterval(updateElapsedTime, 1000);
       }
 
       // 活動項目を保存する関数
@@ -75,21 +91,20 @@
       // 活動項目を削除する関数
       function deleteActivity(index) {
         activities.splice(index, 1);
-        saveActivities();
         activityList.innerHTML = "";
         activities.forEach(renderActivity);
+        saveActivities();
       }
 
-      // 活動項目を更新する関数
+      // 活動項目の開始時刻を更新する関数
       function updateActivity(index) {
-        var startTime = new Date().toLocaleString(); // 現在時刻を取得
-        activities[index].startTime = startTime;
-        saveActivities();
+        activities[index].startTime = new Date().toLocaleString();
         activityList.innerHTML = "";
         activities.forEach(renderActivity);
+        saveActivities();
       }
 
-      // ローカルストレージから読み込んだ活動データを表示
+      // ローカルストレージから読み込んだ活動項目を表示
       activities.forEach(renderActivity);
     });
   </script>
